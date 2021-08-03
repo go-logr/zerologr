@@ -29,9 +29,9 @@ import (
 )
 
 var (
-	// NameFieldName is the field key for WithName
+	// NameFieldName is the field key for logr.WithName
 	NameFieldName = "logger"
-	// NameSeparator separates names for WithName
+	// NameSeparator separates names for logr.WithName
 	NameSeparator = "/"
 )
 
@@ -46,7 +46,7 @@ const (
 
 type logSink struct {
 	l      *zerolog.Logger
-	prefix string
+	name   string
 	values []interface{}
 	depth  int64
 	_      int64 // CPU cache line padding
@@ -99,8 +99,8 @@ func (ls *logSink) msg(e *zerolog.Event, msg string, kvList []interface{}) {
 		e = handleFields(e, ls.values)
 	}
 	e = handleFields(e, kvList)
-	if len(ls.prefix) > 0 {
-		e.Str(NameFieldName, ls.prefix)
+	if len(ls.name) > 0 {
+		e.Str(NameFieldName, ls.name)
 	}
 	e.CallerSkipFrame(int(ls.depth))
 	e.Msg(msg)
@@ -116,10 +116,10 @@ func (ls logSink) WithValues(kvList ...interface{}) logr.LogSink {
 // uses NameSeparator characters to separate name elements.  Callers should not pass
 // NameSeparator in the provided name string, but this library does not actually enforce that.
 func (ls logSink) WithName(name string) logr.LogSink {
-	if len(ls.prefix) > 0 {
-		ls.prefix += NameSeparator + name
+	if len(ls.name) > 0 {
+		ls.name += NameSeparator + name
 	} else {
-		ls.prefix = name
+		ls.name = name
 	}
 	return &ls
 }

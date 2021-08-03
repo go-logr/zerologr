@@ -13,4 +13,5 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "^1.16"
-      - run: go test ./... -bench=.
+      - run: go test ./...
+      - run: cd benchmark && go test -bench=.
