@@ -1,5 +1,9 @@
 # Zerologr
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/hn8/zerologr.svg)](https://pkg.go.dev/github.com/hn8/zerologr)
+![test](https://github.com/hn8/zerologr/workflows/test/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hn8/zerologr)](https://goreportcard.com/report/github.com/hn8/zerologr)
+
 The fastest [logr](https://github.com/go-logr/logr) implementation using
 [Zerolog](https://github.com/rs/zerolog).
 

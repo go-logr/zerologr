@@ -1,4 +1,4 @@
-// package zerologr defines an implementation of the github.com/go-logr/logr
+// Package zerologr defines an implementation of the github.com/go-logr/logr
 // interfaces built on top of Zerolog (https://github.com/rs/zerolog).
 //
 // Usage
@@ -29,9 +29,14 @@ import (
 )
 
 var (
+	// NameFieldName is the field key for WithName
 	NameFieldName = "logger"
+	// NameSeparator separates names for WithName
 	NameSeparator = "/"
 )
+
+// Logger is the alias of logr.Logger
+type Logger = logr.Logger
 
 const (
 	infoLevel  = 1 - int(zerolog.InfoLevel)
@@ -53,7 +58,7 @@ var (
 )
 
 // New returns a logr.Logger with logr.LogSink implemented by zerolog.
-func New(l *zerolog.Logger) logr.Logger {
+func New(l *zerolog.Logger) Logger {
 	ls := &logSink{l: l}
 	return logr.New(ls)
 }
