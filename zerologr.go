@@ -35,16 +35,17 @@ var (
 	NameSeparator = "/"
 )
 
-// Logger is the alias of logr.Logger
-type Logger = logr.Logger
-
 const (
 	infoLevel  = 1 - int(zerolog.InfoLevel)
 	debugLevel = 1 - int(zerolog.DebugLevel)
 	traceLevel = 1 - int(zerolog.TraceLevel)
 )
 
-type logSink struct {
+// Logger is type alias of logr.Logger
+type Logger = logr.Logger
+
+// LogSink implements logr.LogSink and logr.CallDepthLogSink.
+type LogSink struct {
 	l      *zerolog.Logger
 	name   string
 	values []interface{}
@@ -53,26 +54,34 @@ type logSink struct {
 }
 
 var (
-	_ logr.LogSink          = &logSink{}
-	_ logr.CallDepthLogSink = &logSink{}
+	_ logr.LogSink          = &LogSink{}
+	_ logr.CallDepthLogSink = &LogSink{}
 )
 
-// New returns a logr.Logger with logr.LogSink implemented by zerolog.
+// New returns a logr.Logger with logr.LogSink implemented by Zerolog.
 func New(l *zerolog.Logger) Logger {
-	ls := &logSink{l: l}
+	ls := NewLogSink(l)
 	return logr.New(ls)
 }
 
-func (ls *logSink) Init(ri logr.RuntimeInfo) {
+// NewLogSink returns a logr.LogSink implemented by Zerolog.
+func NewLogSink(l *zerolog.Logger) *LogSink {
+	return &LogSink{l: l}
+}
+
+// Init receives runtime info about the logr library.
+func (ls *LogSink) Init(ri logr.RuntimeInfo) {
 	ls.depth += int64(ri.CallDepth) + 2
 }
 
-func (*logSink) Enabled(level int) bool {
-	// Info() checks zerolog.GlobalLevel() internally
+// Enabled tests whether this LogSink is enabled at the specified V-level.
+// Delegates to Info checking zerolog.GlobalLevel internally.
+func (*LogSink) Enabled(level int) bool {
 	return level <= traceLevel
 }
 
-func (ls *logSink) Info(level int, msg string, kvList ...interface{}) {
+// Info logs a non-error message at specified V-level with the given key/value pairs as context.
+func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 	var e *zerolog.Event
 	// small switch: linear search
 	switch level {
@@ -83,22 +92,23 @@ func (ls *logSink) Info(level int, msg string, kvList ...interface{}) {
 	case traceLevel:
 		e = ls.l.Trace()
 	}
-	ls.msg(e, msg, kvList)
+	ls.msg(e, msg, keysAndValues)
 }
 
-func (ls *logSink) Error(err error, msg string, kvList ...interface{}) {
+// Error logs an error, with the given message and key/value pairs as context.
+func (ls *LogSink) Error(err error, msg string, keysAndValues ...interface{}) {
 	e := ls.l.Error().Err(err)
-	ls.msg(e, msg, kvList)
+	ls.msg(e, msg, keysAndValues)
 }
 
-func (ls *logSink) msg(e *zerolog.Event, msg string, kvList []interface{}) {
+func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []interface{}) {
 	if e == nil {
 		return
 	}
 	if len(ls.values) > 0 {
 		e = handleFields(e, ls.values)
 	}
-	e = handleFields(e, kvList)
+	e = handleFields(e, keysAndValues)
 	if len(ls.name) > 0 {
 		e.Str(NameFieldName, ls.name)
 	}
@@ -106,16 +116,16 @@ func (ls *logSink) msg(e *zerolog.Event, msg string, kvList []interface{}) {
 	e.Msg(msg)
 }
 
-func (ls logSink) WithValues(kvList ...interface{}) logr.LogSink {
+// WithValues returns a new LogSink with additional key/value pairs.
+func (ls LogSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
 	n := len(ls.values)
-	ls.values = append(ls.values[:n:n], kvList...)
+	ls.values = append(ls.values[:n:n], keysAndValues...)
 	return &ls
 }
 
-// WithName returns a new logr.Logger with the specified NameFieldName.  zerologr
-// uses NameSeparator characters to separate name elements.  Callers should not pass
-// NameSeparator in the provided name string, but this library does not actually enforce that.
-func (ls logSink) WithName(name string) logr.LogSink {
+// WithName returns a new LogSink with the specified name appended in NameFieldName.
+// Name elements are separated by NameSeparator.
+func (ls LogSink) WithName(name string) logr.LogSink {
 	if len(ls.name) > 0 {
 		ls.name += NameSeparator + name
 	} else {
@@ -124,18 +134,19 @@ func (ls logSink) WithName(name string) logr.LogSink {
 	return &ls
 }
 
-func (ls logSink) WithCallDepth(depth int) logr.LogSink {
+// WithCallDepth returns a new LogSink that offsets the call stack by adding specified depths
+func (ls LogSink) WithCallDepth(depth int) logr.LogSink {
 	ls.depth += int64(depth)
 	return &ls
 }
 
-func handleFields(e *zerolog.Event, kvList []interface{}) *zerolog.Event {
-	kvLen := len(kvList)
+func handleFields(e *zerolog.Event, keysAndValues []interface{}) *zerolog.Event {
+	kvLen := len(keysAndValues)
 	if kvLen&0x1 == 1 { // odd number
-		kvList = append(kvList, "<no-value>")
+		keysAndValues = append(keysAndValues, "<no-value>")
 	}
 	for i := 0; i < kvLen; i += 2 {
-		key, val := kvList[i], kvList[i+1]
+		key, val := keysAndValues[i], keysAndValues[i+1]
 		k, ok := key.(string)
 		if !ok {
 			k = "<non-string-key>"

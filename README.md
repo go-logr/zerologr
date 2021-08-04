@@ -4,7 +4,7 @@
 ![test](https://github.com/hn8/zerologr/workflows/test/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hn8/zerologr)](https://goreportcard.com/report/github.com/hn8/zerologr)
 
-A [logr](https://github.com/go-logr/logr) implementation using [Zerolog](https://github.com/rs/zerolog).
+A [logr](https://github.com/go-logr/logr) LogSink implementation using [Zerolog](https://github.com/rs/zerolog).
 
 ## Usage
 
