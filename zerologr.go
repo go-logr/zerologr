@@ -35,12 +35,6 @@ var (
 	NameSeparator = "/"
 )
 
-const (
-	infoLevel  = 1 - int(zerolog.InfoLevel)
-	debugLevel = 1 - int(zerolog.DebugLevel)
-	traceLevel = 1 - int(zerolog.TraceLevel)
-)
-
 // Logger is type alias of logr.Logger
 type Logger = logr.Logger
 
@@ -76,22 +70,14 @@ func (ls *LogSink) Init(ri logr.RuntimeInfo) {
 
 // Enabled tests whether this LogSink is enabled at the specified V-level.
 // Delegates to Info checking zerolog.GlobalLevel internally.
-func (*LogSink) Enabled(level int) bool {
-	return level <= traceLevel
+func (ls *LogSink) Enabled(level int) bool {
+	zl := zerolog.Level(1 - level)
+	return zl >= ls.l.GetLevel() && zl >= zerolog.GlobalLevel()
 }
 
 // Info logs a non-error message at specified V-level with the given key/value pairs as context.
 func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
-	var e *zerolog.Event
-	// small switch: linear search
-	switch level {
-	case infoLevel:
-		e = ls.l.Info()
-	case debugLevel:
-		e = ls.l.Debug()
-	case traceLevel:
-		e = ls.l.Trace()
-	}
+	e := ls.l.WithLevel(zerolog.Level(1 - level))
 	ls.msg(e, msg, keysAndValues)
 }
 
