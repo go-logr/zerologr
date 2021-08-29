@@ -1,12 +1,7 @@
 name: test
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+on: [ push, pull_request ]
 jobs:
-  golangci:
-    name: test
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

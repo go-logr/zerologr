@@ -114,6 +114,15 @@ func doWithName(b *testing.B, log logr.Logger) {
 	}
 }
 
+//go:noinline
+func doWithCallDepth(b *testing.B, log logr.Logger) {
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		l := log.WithCallDepth(1)
+		_ = l
+	}
+}
+
 // discard
 
 func BenchmarkDiscardInfoOneArg(b *testing.B) {
@@ -149,6 +158,11 @@ func BenchmarkDiscardWithValues(b *testing.B) {
 func BenchmarkDiscardWithName(b *testing.B) {
 	var log logr.Logger = logr.Discard()
 	doWithName(b, log)
+}
+
+func BenchmarkDiscardWithCallDepth(b *testing.B) {
+	var log logr.Logger = logr.Discard()
+	doWithCallDepth(b, log)
 }
 
 // funcr
@@ -195,6 +209,11 @@ func BenchmarkFuncrWithName(b *testing.B) {
 	doWithName(b, log)
 }
 
+func BenchmarkFuncrWithCallDepth(b *testing.B) {
+	var log logr.Logger = funcrLogger()
+	doWithCallDepth(b, log)
+}
+
 // stdr
 
 func stdrLogger() logr.Logger {
@@ -236,6 +255,11 @@ func BenchmarkStdrWithName(b *testing.B) {
 	doWithName(b, log)
 }
 
+func BenchmarkStdrWithCallDepth(b *testing.B) {
+	var log logr.Logger = stdrLogger()
+	doWithCallDepth(b, log)
+}
+
 // glogr
 
 func BenchmarkGlogrInfoOneArg(b *testing.B) {
@@ -271,6 +295,11 @@ func BenchmarkGlogrWithValues(b *testing.B) {
 func BenchmarkGlogrWithName(b *testing.B) {
 	var log logr.Logger = glogr.New()
 	doWithName(b, log)
+}
+
+func BenchmarkGlogrWithCallDepth(b *testing.B) {
+	var log logr.Logger = glogr.New()
+	doWithCallDepth(b, log)
 }
 
 // zapr
@@ -319,6 +348,11 @@ func BenchmarkZaprWithName(b *testing.B) {
 	doWithName(b, log)
 }
 
+func BenchmarkZaprWithCallDepth(b *testing.B) {
+	var log logr.Logger = zaprLogger()
+	doWithCallDepth(b, log)
+}
+
 // logrusr
 
 func logrusrLogger() logr.Logger {
@@ -362,6 +396,11 @@ func BenchmarkLogrusrWithName(b *testing.B) {
 	doWithName(b, log)
 }
 
+func BenchmarkLogrusrWithCallDepth(b *testing.B) {
+	var log logr.Logger = logrusrLogger()
+	doWithCallDepth(b, log)
+}
+
 // zerologr
 
 func zerologrLogger() logr.Logger {
@@ -402,4 +441,9 @@ func BenchmarkZerologrWithValues(b *testing.B) {
 func BenchmarkZerologrWithName(b *testing.B) {
 	var log logr.Logger = zerologrLogger()
 	doWithName(b, log)
+}
+
+func BenchmarkZerologrWithCallDepth(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doWithCallDepth(b, log)
 }

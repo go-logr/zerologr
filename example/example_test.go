@@ -1,4 +1,6 @@
+//go:build !binary_log
 // +build !binary_log
+
 /*
 Copyright 2021 The logr Authors.
 
@@ -56,9 +58,9 @@ func ExampleNew() {
 	Helper(log, "thru a helper")
 
 	// Output:
-	// {"level":"info","module":"example","val1":1,"val2":{"k":1},"logger":"MyName","message":"hello"}
-	// {"level":"debug","module":"example","logger":"MyName","message":"you should see this"}
-	// {"level":"error","module":"example","trouble":true,"reasons":[0.1,0.11,3.14],"logger":"MyName","message":"uh oh"}
-	// {"level":"error","error":"an error occurred","module":"example","code":-1,"logger":"MyName","message":"goodbye"}
-	// {"level":"info","module":"example","logger":"MyName","message":"thru a helper"}
+	// {"v":0,"module":"example","val1":1,"val2":{"k":1},"logger":"MyName","message":"hello"}
+	// {"v":1,"module":"example","logger":"MyName","message":"you should see this"}
+	// {"module":"example","trouble":true,"reasons":[0.1,0.11,3.14],"logger":"MyName","message":"uh oh"}
+	// {"error":"an error occurred","module":"example","code":-1,"logger":"MyName","message":"goodbye"}
+	// {"v":0,"module":"example","logger":"MyName","message":"thru a helper"}
 }

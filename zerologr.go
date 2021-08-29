@@ -16,9 +16,9 @@
 // Levels in logr correspond to custom debug levels in Zerolog.  Any given level
 // in logr is represents by `zerologLevel = 1 - logrLevel`.
 // For example V(2) is equivalent to Zerolog's TraceLevel, while V(1) is
-// equivalent to Zerolog's DebugLevel.  zerologr's usual "level" field is
-// disabled and replaced with "v", whose value is a number and is only logged
-// on Info(), not Error().
+// equivalent to Zerolog's DebugLevel.  Zerolog's usual "level" field is
+// disabled globally and replaced with "v", whose value is a number and is only
+// logged on Info(), not Error().
 package zerologr
 
 import (
@@ -49,6 +49,14 @@ type LogSink struct {
 	_      int64 // CPU cache line padding
 }
 
+// Underlier exposes access to the underlying logging implementation.  Since
+// callers only have a logr.Logger, they have to know which implementation is
+// in use, so this interface is less of an abstraction and more of way to test
+// type conversion.
+type Underlier interface {
+	GetUnderlying() *zerolog.Logger
+}
+
 var (
 	_ logr.LogSink          = &LogSink{}
 	_ logr.CallDepthLogSink = &LogSink{}
@@ -62,7 +70,9 @@ func New(l *zerolog.Logger) Logger {
 
 // NewLogSink returns a logr.LogSink implemented by Zerolog.
 func NewLogSink(l *zerolog.Logger) *LogSink {
-	zerolog.LevelFieldName = ""
+	if zerolog.LevelFieldName == "level" {
+		zerolog.LevelFieldName = ""
+	}
 	return &LogSink{l: l}
 }
 
@@ -72,16 +82,17 @@ func (ls *LogSink) Init(ri logr.RuntimeInfo) {
 }
 
 // Enabled tests whether this LogSink is enabled at the specified V-level.
-// Delegates to Info checking zerolog.GlobalLevel internally.
 func (ls *LogSink) Enabled(level int) bool {
-	zl := zerolog.Level(1 - level)
-	return zl >= ls.l.GetLevel() && zl >= zerolog.GlobalLevel()
+	// Optimization: Info() will check level internally.
+	const traceLevel = 1 - int(zerolog.TraceLevel)
+	return level <= traceLevel
 }
 
 // Info logs a non-error message at specified V-level with the given key/value pairs as context.
 func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 	e := ls.l.WithLevel(zerolog.Level(1 - level))
-	ls.msg(e, msg, append(keysAndValues, "v", level))
+	e.Int("v", level)
+	ls.msg(e, msg, keysAndValues)
 }
 
 // Error logs an error, with the given message and key/value pairs as context.
@@ -98,7 +109,7 @@ func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []interface{}
 		e = handleFields(e, ls.values)
 	}
 	e = handleFields(e, keysAndValues)
-	if len(ls.name) > 0 {
+	if ls.name != "" {
 		e.Str(NameFieldName, ls.name)
 	}
 	e.CallerSkipFrame(int(ls.depth))
@@ -115,7 +126,7 @@ func (ls LogSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
 // WithName returns a new LogSink with the specified name appended in NameFieldName.
 // Name elements are separated by NameSeparator.
 func (ls LogSink) WithName(name string) logr.LogSink {
-	if len(ls.name) > 0 {
+	if ls.name != "" {
 		ls.name += NameSeparator + name
 	} else {
 		ls.name = name
@@ -123,10 +134,15 @@ func (ls LogSink) WithName(name string) logr.LogSink {
 	return &ls
 }
 
-// WithCallDepth returns a new LogSink that offsets the call stack by adding specified depths
+// WithCallDepth returns a new LogSink that offsets the call stack by adding specified depths.
 func (ls LogSink) WithCallDepth(depth int) logr.LogSink {
 	ls.depth += int64(depth)
 	return &ls
+}
+
+// GetUnderlying returns the zerolog.Logger underneath this logSink.
+func (ls *LogSink) GetUnderlying() *zerolog.Logger {
+	return ls.l
 }
 
 func handleFields(e *zerolog.Event, keysAndValues []interface{}) *zerolog.Event {
