@@ -16,7 +16,9 @@
 // Levels in logr correspond to custom debug levels in Zerolog.  Any given level
 // in logr is represents by `zerologLevel = 1 - logrLevel`.
 // For example V(2) is equivalent to Zerolog's TraceLevel, while V(1) is
-// equivalent to Zerolog's DebugLevel.
+// equivalent to Zerolog's DebugLevel.  zerologr's usual "level" field is
+// disabled and replaced with "v", whose value is a number and is only logged
+// on Info(), not Error().
 package zerologr
 
 import (
@@ -33,12 +35,6 @@ var (
 	NameFieldName = "logger"
 	// NameSeparator separates names for logr.WithName
 	NameSeparator = "/"
-)
-
-const (
-	infoLevel  = 1 - int(zerolog.InfoLevel)
-	debugLevel = 1 - int(zerolog.DebugLevel)
-	traceLevel = 1 - int(zerolog.TraceLevel)
 )
 
 // Logger is type alias of logr.Logger
@@ -66,6 +62,7 @@ func New(l *zerolog.Logger) Logger {
 
 // NewLogSink returns a logr.LogSink implemented by Zerolog.
 func NewLogSink(l *zerolog.Logger) *LogSink {
+	zerolog.LevelFieldName = ""
 	return &LogSink{l: l}
 }
 
@@ -76,23 +73,15 @@ func (ls *LogSink) Init(ri logr.RuntimeInfo) {
 
 // Enabled tests whether this LogSink is enabled at the specified V-level.
 // Delegates to Info checking zerolog.GlobalLevel internally.
-func (*LogSink) Enabled(level int) bool {
-	return level <= traceLevel
+func (ls *LogSink) Enabled(level int) bool {
+	zl := zerolog.Level(1 - level)
+	return zl >= ls.l.GetLevel() && zl >= zerolog.GlobalLevel()
 }
 
 // Info logs a non-error message at specified V-level with the given key/value pairs as context.
 func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
-	var e *zerolog.Event
-	// small switch: linear search
-	switch level {
-	case infoLevel:
-		e = ls.l.Info()
-	case debugLevel:
-		e = ls.l.Debug()
-	case traceLevel:
-		e = ls.l.Trace()
-	}
-	ls.msg(e, msg, keysAndValues)
+	e := ls.l.WithLevel(zerolog.Level(1 - level))
+	ls.msg(e, msg, append(keysAndValues, "v", level))
 }
 
 // Error logs an error, with the given message and key/value pairs as context.

@@ -53,12 +53,12 @@ func ExampleNew() {
 	log.V(1).V(1).Info("you should NOT see this")
 	log.Error(nil, "uh oh", "trouble", true, "reasons", []float64{0.1, 0.11, 3.14})
 	log.Error(E{"an error occurred"}, "goodbye", "code", -1)
-	Helper(log, "thru a helper") // TODO: fix https://github.com/go-logr/logr/pull/58
+	Helper(log, "thru a helper")
 
 	// Output:
 	// {"level":"info","module":"example","val1":1,"val2":{"k":1},"logger":"MyName","message":"hello"}
 	// {"level":"debug","module":"example","logger":"MyName","message":"you should see this"}
 	// {"level":"error","module":"example","trouble":true,"reasons":[0.1,0.11,3.14],"logger":"MyName","message":"uh oh"}
 	// {"level":"error","error":"an error occurred","module":"example","code":-1,"logger":"MyName","message":"goodbye"}
-	// {"level":"info","message":"thru a helper"}
+	// {"level":"info","module":"example","logger":"MyName","message":"thru a helper"}
 }
