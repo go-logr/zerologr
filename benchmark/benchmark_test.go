@@ -260,6 +260,53 @@ func BenchmarkStdrWithCallDepth(b *testing.B) {
 	doWithCallDepth(b, log)
 }
 
+// zerologr
+
+func zerologrLogger() logr.Logger {
+	zl := zerolog.New(os.Stderr)
+	return zerologr.New(&zl)
+}
+
+func BenchmarkZerologrInfoOneArg(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doInfoOneArg(b, log)
+}
+
+func BenchmarkZerologrInfoSeveralArgs(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doInfoSeveralArgs(b, log)
+}
+
+func BenchmarkZerologrV0Info(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doV0Info(b, log)
+}
+
+func BenchmarkZerologrV9Info(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doV9Info(b, log)
+}
+
+func BenchmarkZerologrError(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doError(b, log)
+}
+
+func BenchmarkZerologrWithValues(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doWithValues(b, log)
+}
+
+func BenchmarkZerologrWithName(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doWithName(b, log)
+}
+
+func BenchmarkZerologrWithCallDepth(b *testing.B) {
+	var log logr.Logger = zerologrLogger()
+	doWithCallDepth(b, log)
+}
+
 // glogr
 
 func BenchmarkGlogrInfoOneArg(b *testing.B) {
@@ -398,52 +445,5 @@ func BenchmarkLogrusrWithName(b *testing.B) {
 
 func BenchmarkLogrusrWithCallDepth(b *testing.B) {
 	var log logr.Logger = logrusrLogger()
-	doWithCallDepth(b, log)
-}
-
-// zerologr
-
-func zerologrLogger() logr.Logger {
-	zl := zerolog.New(os.Stderr)
-	return zerologr.New(&zl)
-}
-
-func BenchmarkZerologrInfoOneArg(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doInfoOneArg(b, log)
-}
-
-func BenchmarkZerologrInfoSeveralArgs(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doInfoSeveralArgs(b, log)
-}
-
-func BenchmarkZerologrV0Info(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doV0Info(b, log)
-}
-
-func BenchmarkZerologrV9Info(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doV9Info(b, log)
-}
-
-func BenchmarkZerologrError(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doError(b, log)
-}
-
-func BenchmarkZerologrWithValues(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doWithValues(b, log)
-}
-
-func BenchmarkZerologrWithName(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
-	doWithName(b, log)
-}
-
-func BenchmarkZerologrWithCallDepth(b *testing.B) {
-	var log logr.Logger = zerologrLogger()
 	doWithCallDepth(b, log)
 }

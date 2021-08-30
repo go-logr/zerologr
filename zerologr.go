@@ -78,7 +78,7 @@ func NewLogSink(l *zerolog.Logger) *LogSink {
 
 // Init receives runtime info about the logr library.
 func (ls *LogSink) Init(ri logr.RuntimeInfo) {
-	ls.depth += int64(ri.CallDepth) + 2
+	ls.depth = int64(ri.CallDepth) + 2
 }
 
 // Enabled tests whether this LogSink is enabled at the specified V-level.
