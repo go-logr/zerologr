@@ -22,10 +22,6 @@
 package zerologr
 
 import (
-	"encoding/json"
-	"net"
-	"time"
-
 	"github.com/go-logr/logr"
 	"github.com/rs/zerolog"
 )
@@ -45,8 +41,7 @@ type LogSink struct {
 	l      *zerolog.Logger
 	name   string
 	values []interface{}
-	depth  int64
-	_      int64 // CPU cache line padding
+	depth  int
 }
 
 // Underlier exposes access to the underlying logging implementation.  Since
@@ -78,7 +73,7 @@ func NewLogSink(l *zerolog.Logger) *LogSink {
 
 // Init receives runtime info about the logr library.
 func (ls *LogSink) Init(ri logr.RuntimeInfo) {
-	ls.depth = int64(ri.CallDepth) + 2
+	ls.depth = ri.CallDepth + 2
 }
 
 // Enabled tests whether this LogSink is enabled at the specified V-level.
@@ -106,9 +101,9 @@ func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []interface{}
 		return
 	}
 	if len(ls.values) > 0 {
-		e = handleFields(e, ls.values)
+		e = e.Fields(ls.values)
 	}
-	e = handleFields(e, keysAndValues)
+	e = e.Fields(keysAndValues)
 	if ls.name != "" {
 		e.Str(NameFieldName, ls.name)
 	}
@@ -136,111 +131,11 @@ func (ls LogSink) WithName(name string) logr.LogSink {
 
 // WithCallDepth returns a new LogSink that offsets the call stack by adding specified depths.
 func (ls LogSink) WithCallDepth(depth int) logr.LogSink {
-	ls.depth += int64(depth)
+	ls.depth += depth
 	return &ls
 }
 
 // GetUnderlying returns the zerolog.Logger underneath this logSink.
 func (ls *LogSink) GetUnderlying() *zerolog.Logger {
 	return ls.l
-}
-
-func handleFields(e *zerolog.Event, keysAndValues []interface{}) *zerolog.Event {
-	kvLen := len(keysAndValues)
-	if kvLen&0x1 == 1 { // odd number
-		keysAndValues = append(keysAndValues, "<no-value>")
-	}
-	for i := 0; i < kvLen; i += 2 {
-		key, val := keysAndValues[i], keysAndValues[i+1]
-		k, ok := key.(string)
-		if !ok {
-			k = "<non-string-key>"
-		}
-		// concrete type switch: binary search of sorted type hash
-		switch v := val.(type) {
-		case string:
-			e.Str(k, v)
-		case []byte:
-			e.Bytes(k, v)
-		case bool:
-			e.Bool(k, v)
-		case int:
-			e.Int(k, v)
-		case int8:
-			e.Int8(k, v)
-		case int16:
-			e.Int16(k, v)
-		case int32:
-			e.Int32(k, v)
-		case int64:
-			e.Int64(k, v)
-		case uint:
-			e.Uint(k, v)
-		case uint8:
-			e.Uint8(k, v)
-		case uint16:
-			e.Uint16(k, v)
-		case uint32:
-			e.Uint32(k, v)
-		case uint64:
-			e.Uint64(k, v)
-		case float32:
-			e.Float32(k, v)
-		case float64:
-			e.Float64(k, v)
-		case time.Time:
-			e.Time(k, v)
-		case time.Duration:
-			e.Dur(k, v)
-		case []string:
-			e.Strs(k, v)
-		case []bool:
-			e.Bools(k, v)
-		case []int:
-			e.Ints(k, v)
-		case []int8:
-			e.Ints8(k, v)
-		case []int16:
-			e.Ints16(k, v)
-		case []int32:
-			e.Ints32(k, v)
-		case []int64:
-			e.Ints64(k, v)
-		case []uint:
-			e.Uints(k, v)
-		case []uint16:
-			e.Uints16(k, v)
-		case []uint32:
-			e.Uints32(k, v)
-		case []uint64:
-			e.Uints64(k, v)
-		case []float32:
-			e.Floats32(k, v)
-		case []float64:
-			e.Floats64(k, v)
-		case []time.Time:
-			e.Times(k, v)
-		case []time.Duration:
-			e.Durs(k, v)
-		case net.IP:
-			e.IPAddr(k, v)
-		case net.IPNet:
-			e.IPPrefix(k, v)
-		case net.HardwareAddr:
-			e.MACAddr(k, v)
-		case json.RawMessage:
-			e.RawJSON(k, v)
-		default:
-			// interface type switch
-			switch v := val.(type) {
-			case error:
-				e.AnErr(k, v)
-			case []error:
-				e.Errs(k, v)
-			default:
-				e.Interface(k, val)
-			}
-		}
-	}
-	return e
 }

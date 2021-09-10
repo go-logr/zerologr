@@ -9,7 +9,7 @@ require (
 	github.com/go-logr/stdr v1.1.0
 	github.com/go-logr/zapr v1.1.0
 	github.com/hn8/zerologr v0.0.0
-	github.com/rs/zerolog v1.24.0
+	github.com/rs/zerolog v1.25.0
 	github.com/sirupsen/logrus v1.8.1
 	go.uber.org/zap v1.19.0
 )
