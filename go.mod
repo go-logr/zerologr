@@ -1,4 +1,4 @@
-module github.com/hn8/zerologr
+module github.com/go-logr/zerologr
 
 go 1.17
 

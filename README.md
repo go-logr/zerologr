@@ -1,8 +1,8 @@
 # Zerologr
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/hn8/zerologr.svg)](https://pkg.go.dev/github.com/hn8/zerologr)
-![test](https://github.com/hn8/zerologr/workflows/test/badge.svg)
-[![Go Report Card](https://goreportcard.com/badge/github.com/hn8/zerologr)](https://goreportcard.com/report/github.com/hn8/zerologr)
+[![Go Reference](https://pkg.go.dev/badge/github.com/go-logr/zerologr.svg)](https://pkg.go.dev/github.com/go-logr/zerologr)
+![test](https://github.com/go-logr/zerologr/workflows/test/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/go-logr/zerologr)](https://goreportcard.com/report/github.com/go-logr/zerologr)
 
 A [logr](https://github.com/go-logr/logr) LogSink implementation using [Zerolog](https://github.com/rs/zerolog).
 
@@ -13,7 +13,7 @@ import (
     "os"
 
     "github.com/go-logr/logr"
-    "github.com/hn8/zerologr"
+    "github.com/go-logr/zerologr"
     "github.com/rs/zerolog"
 )
 

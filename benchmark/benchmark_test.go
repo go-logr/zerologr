@@ -29,7 +29,7 @@ import (
 	"github.com/go-logr/logr/funcr"
 	"github.com/go-logr/stdr"
 	"github.com/go-logr/zapr"
-	"github.com/hn8/zerologr"
+	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"

@@ -23,7 +23,7 @@ import (
 	"os"
 
 	"github.com/go-logr/logr"
-	"github.com/hn8/zerologr"
+	"github.com/go-logr/zerologr"
 	"github.com/rs/zerolog"
 )
 
