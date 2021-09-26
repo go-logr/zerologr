@@ -38,10 +38,9 @@ type Logger = logr.Logger
 
 // LogSink implements logr.LogSink and logr.CallDepthLogSink.
 type LogSink struct {
-	l      *zerolog.Logger
-	name   string
-	values []interface{}
-	depth  int
+	l     *zerolog.Logger
+	name  string
+	depth int
 }
 
 // Underlier exposes access to the underlying logging implementation.  Since
@@ -100,21 +99,18 @@ func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []interface{}
 	if e == nil {
 		return
 	}
-	if len(ls.values) > 0 {
-		e = e.Fields(ls.values)
-	}
-	e = e.Fields(keysAndValues)
 	if ls.name != "" {
 		e.Str(NameFieldName, ls.name)
 	}
+	e = e.Fields(keysAndValues)
 	e.CallerSkipFrame(int(ls.depth))
 	e.Msg(msg)
 }
 
 // WithValues returns a new LogSink with additional key/value pairs.
 func (ls LogSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
-	n := len(ls.values)
-	ls.values = append(ls.values[:n:n], keysAndValues...)
+	l := ls.l.With().Fields(keysAndValues).Logger()
+	ls.l = &l
 	return &ls
 }
 

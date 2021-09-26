@@ -58,9 +58,9 @@ func ExampleNew() {
 	Helper(log, "thru a helper")
 
 	// Output:
-	// {"v":0,"module":"example","val1":1,"val2":{"k":1},"logger":"MyName","message":"hello"}
-	// {"v":1,"module":"example","logger":"MyName","message":"you should see this"}
-	// {"module":"example","trouble":true,"reasons":[0.1,0.11,3.14],"logger":"MyName","message":"uh oh"}
-	// {"error":"an error occurred","module":"example","code":-1,"logger":"MyName","message":"goodbye"}
-	// {"v":0,"module":"example","logger":"MyName","message":"thru a helper"}
+	// {"module":"example","v":0,"logger":"MyName","val1":1,"val2":{"k":1},"message":"hello"}
+	// {"module":"example","v":1,"logger":"MyName","message":"you should see this"}
+	// {"module":"example","logger":"MyName","trouble":true,"reasons":[0.1,0.11,3.14],"message":"uh oh"}
+	// {"module":"example","error":"an error occurred","logger":"MyName","code":-1,"message":"goodbye"}
+	// {"module":"example","v":0,"logger":"MyName","message":"thru a helper"}
 }
