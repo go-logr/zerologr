@@ -18,10 +18,12 @@ import (
 )
 
 func main() {
+    zerolog.TimeFieldFormat = zerolog.TimeFormatUnixMs
     zerologr.NameFieldName = "logger"
     zerologr.NameSeparator = "/"
 
     zl := zerolog.New(os.Stderr)
+    zl = zl.With().Caller().Timestamp().Logger()
     var log logr.Logger = zerologr.New(&zl)
 
     log.Info("Logr in action!", "the answer", 42)
