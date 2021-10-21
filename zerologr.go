@@ -22,6 +22,8 @@
 package zerologr
 
 import (
+	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/rs/zerolog"
 )
@@ -31,6 +33,12 @@ var (
 	NameFieldName = "logger"
 	// NameSeparator separates names for logr.WithName
 	NameSeparator = "/"
+
+	// RenderArgsHook mutates the list of key-value pairs passed directly to Info and Error.
+	RenderArgsHook = DefaultRender
+
+	// RenderValuesHook mutates the list of key-value pairs saved via WithValues.
+	RenderValuesHook = DefaultRender
 )
 
 // Logger is type alias of logr.Logger
@@ -102,13 +110,19 @@ func (ls *LogSink) msg(e *zerolog.Event, msg string, keysAndValues []interface{}
 	if ls.name != "" {
 		e.Str(NameFieldName, ls.name)
 	}
+	if RenderArgsHook != nil {
+		keysAndValues = RenderArgsHook(keysAndValues)
+	}
 	e = e.Fields(keysAndValues)
-	e.CallerSkipFrame(int(ls.depth))
+	e.CallerSkipFrame(ls.depth)
 	e.Msg(msg)
 }
 
 // WithValues returns a new LogSink with additional key/value pairs.
 func (ls LogSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
+	if RenderValuesHook != nil {
+		keysAndValues = RenderValuesHook(keysAndValues)
+	}
 	l := ls.l.With().Fields(keysAndValues).Logger()
 	ls.l = &l
 	return &ls
@@ -134,4 +148,18 @@ func (ls LogSink) WithCallDepth(depth int) logr.LogSink {
 // GetUnderlying returns the zerolog.Logger underneath this logSink.
 func (ls *LogSink) GetUnderlying() *zerolog.Logger {
 	return ls.l
+}
+
+// DefaultRender supports logr.Marshaler and fmt.Stringer.
+func DefaultRender(keysAndValues []interface{}) []interface{} {
+	for i, n := 1, len(keysAndValues); i < n; i += 2 {
+		value := keysAndValues[i]
+		switch v := value.(type) {
+		case logr.Marshaler:
+			keysAndValues[i] = v.MarshalLog()
+		case fmt.Stringer:
+			keysAndValues[i] = v.String()
+		}
+	}
+	return keysAndValues
 }
