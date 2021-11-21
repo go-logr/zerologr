@@ -45,6 +45,7 @@ func helper2(log logr.Logger, msg string) {
 
 func ExampleNew() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.LevelFieldName = ""
 	zl := zerolog.New(os.Stdout)
 	log := zerologr.New(&zl)
 	log = log.WithName("MyName")

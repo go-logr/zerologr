@@ -72,9 +72,6 @@ func New(l *zerolog.Logger) Logger {
 
 // NewLogSink returns a logr.LogSink implemented by Zerolog.
 func NewLogSink(l *zerolog.Logger) *LogSink {
-	if zerolog.LevelFieldName == "level" {
-		zerolog.LevelFieldName = ""
-	}
 	return &LogSink{l: l}
 }
 
