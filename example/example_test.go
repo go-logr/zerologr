@@ -45,7 +45,6 @@ func helper2(log logr.Logger, msg string) {
 
 func ExampleNew() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	zerolog.LevelFieldName = ""
 	zl := zerolog.New(os.Stdout)
 	log := zerologr.New(&zl)
 	log = log.WithName("MyName")
@@ -59,9 +58,9 @@ func ExampleNew() {
 	Helper(log, "thru a helper")
 
 	// Output:
-	// {"module":"example","v":0,"logger":"MyName","val1":1,"val2":{"k":1},"message":"hello"}
-	// {"module":"example","v":1,"logger":"MyName","message":"you should see this"}
-	// {"module":"example","logger":"MyName","trouble":true,"reasons":[0.1,0.11,3.14],"message":"uh oh"}
-	// {"module":"example","error":"an error occurred","logger":"MyName","code":-1,"message":"goodbye"}
-	// {"module":"example","v":0,"logger":"MyName","message":"thru a helper"}
+	// {"level":"info","module":"example","v":0,"logger":"MyName","val1":1,"val2":{"k":1},"message":"hello"}
+	// {"level":"debug","module":"example","v":1,"logger":"MyName","message":"you should see this"}
+	// {"level":"error","module":"example","logger":"MyName","trouble":true,"reasons":[0.1,0.11,3.14],"message":"uh oh"}
+	// {"level":"error","module":"example","error":"an error occurred","logger":"MyName","code":-1,"message":"goodbye"}
+	// {"level":"info","module":"example","v":0,"logger":"MyName","message":"thru a helper"}
 }
