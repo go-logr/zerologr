@@ -64,28 +64,10 @@ var (
 	_ logr.CallDepthLogSink = &LogSink{}
 )
 
-// An Option configures LogSink.
-type Option func(*LogSink)
-
 // New returns a logr.Logger with logr.LogSink implemented by Zerolog.
 func New(l *zerolog.Logger) Logger {
-	return NewWithOptions(l)
-}
-
-// NewWithOptions returns a logr.Logger with logr.LogSink implemented by Zerolog.
-func NewWithOptions(l *zerolog.Logger, options ...Option) Logger {
 	ls := NewLogSink(l)
-	for _, f := range options {
-		f(ls)
-	}
 	return logr.New(ls)
-}
-
-// DisableZerologLevelField disables zerolog.LevelFieldName globally
-func DisableZerologLevelField() Option {
-	return func(_ *LogSink) {
-		zerolog.LevelFieldName = ""
-	}
 }
 
 // NewLogSink returns a logr.LogSink implemented by Zerolog.
