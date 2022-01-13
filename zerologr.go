@@ -105,15 +105,12 @@ func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 		if level > 1-int(zerolog.GlobalLevel()) {
 			return
 		}
-		// Use Logr's "v" level field
-		l := ls.l.With().Int("v", level).Logger()
-		// Use Zerolog without a level
-		e = l.Log()
+		e = ls.l.Log()
 	} else {
 		e = ls.l.WithLevel(zerolog.Level(1 - level))
-		if !DisableVLevelField {
-			e.Int("v", level)
-		}
+	}
+	if !DisableVLevelField {
+		e.Int("v", level)
 	}
 	ls.msg(e, msg, keysAndValues)
 }
@@ -122,13 +119,11 @@ func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 func (ls *LogSink) Error(err error, msg string, keysAndValues ...interface{}) {
 	var e *zerolog.Event
 	if DisableZerologLevelField {
-		// Use Logr's "v" level field
-		l := ls.l.With().Err(err).Logger()
-		// Use Zerolog without a level
-		e = l.Log()
+		e = ls.l.Log()
 	} else {
-		e = ls.l.Error().Err(err)
+		e = ls.l.Error()
 	}
+	e.Err(err)
 	ls.msg(e, msg, keysAndValues)
 }
 
