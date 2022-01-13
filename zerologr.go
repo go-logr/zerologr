@@ -33,6 +33,9 @@ var (
 	NameFieldName = "logger"
 	// NameSeparator separates names for logr.WithName
 	NameSeparator = "/"
+	// UseZerologLevelFieldName uses the default "level" or the key set in
+	// zerolog.LevelFieldName, instead of adding a v/int field.
+	UseZerologLevelFieldName = false
 
 	// RenderArgsHook mutates the list of key-value pairs passed directly to Info and Error.
 	RenderArgsHook = DefaultRender
@@ -89,14 +92,36 @@ func (ls *LogSink) Enabled(level int) bool {
 
 // Info logs a non-error message at specified V-level with the given key/value pairs as context.
 func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
-	e := ls.l.WithLevel(zerolog.Level(1 - level))
-	e.Int("v", level)
+	var e *zerolog.Event
+	if UseZerologLevelFieldName {
+		// If Zerolog's custom level field is set to something specific, use that instead
+		e = ls.l.WithLevel(zerolog.Level(1 - level))
+		// This is for backwards compatibility, but shouldn't be here as it is redundant with Zerolog's level field
+		e = e.Int("v", level)
+	} else {
+		if level > 1-int(zerolog.GlobalLevel()) {
+			return
+		}
+		// Use Logr's "v" notation only by default
+		l := ls.l.With().Int("v", level).Logger()
+		// Don't use Zerolog's levels
+		e = l.Log()
+	}
 	ls.msg(e, msg, keysAndValues)
 }
 
 // Error logs an error, with the given message and key/value pairs as context.
 func (ls *LogSink) Error(err error, msg string, keysAndValues ...interface{}) {
-	e := ls.l.Error().Err(err)
+	var e *zerolog.Event
+	if UseZerologLevelFieldName {
+		// If Zerolog's custom level field is set to something specific, use that instead
+		e = ls.l.Error().Err(err)
+	} else {
+		// // Use Logr's "v" notation only by default
+		l := ls.l.With().Err(err).Logger()
+		// // Don't use Zerolog's levels
+		e = l.Log()
+	}
 	ls.msg(e, msg, keysAndValues)
 }
 
