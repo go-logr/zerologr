@@ -16,9 +16,13 @@
 // Levels in logr correspond to custom debug levels in Zerolog.  Any given level
 // in logr is represents by `zerologLevel = 1 - logrLevel`.
 // For example V(2) is equivalent to Zerolog's TraceLevel, while V(1) is
-// equivalent to Zerolog's DebugLevel.  Zerolog's usual "level" field is
-// disabled globally and replaced with "v", whose value is a number and is only
-// logged on Info(), not Error().
+// equivalent to Zerolog's DebugLevel.
+// Zerolog's usual "level" field is used along with "v", whose value is a
+// number and is only logged on Info(), not Error().
+// Zerolog's usual "level" field can be disabled with DisableZerologLevelField
+// to only use "v".
+// The "v" level field can be disabled with DisableVLevelField to use
+// Zerolog's usual "level" field.
 package zerologr
 
 import (
@@ -33,9 +37,13 @@ var (
 	NameFieldName = "logger"
 	// NameSeparator separates names for logr.WithName
 	NameSeparator = "/"
-	// UseZerologLevelFieldName uses the default "level" or the key set in
-	// zerolog.LevelFieldName, instead of adding a v/int field.
-	UseZerologLevelFieldName = false
+
+	// DisableVLevelField uses Zerolog's default "level" or
+	// zerolog.LevelFieldName and disables the "v" level field.
+	DisableVLevelField = false
+	// DisableZerologLevelField uses the "v" level field and disables Zerolog's
+	// "level" or zerolog.LevelFieldName.
+	DisableZerologLevelField = false
 
 	// RenderArgsHook mutates the list of key-value pairs passed directly to Info and Error.
 	RenderArgsHook = DefaultRender
@@ -93,19 +101,19 @@ func (ls *LogSink) Enabled(level int) bool {
 // Info logs a non-error message at specified V-level with the given key/value pairs as context.
 func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 	var e *zerolog.Event
-	if UseZerologLevelFieldName {
-		// If Zerolog's custom level field is set to something specific, use that instead
-		e = ls.l.WithLevel(zerolog.Level(1 - level))
-		// This is for backwards compatibility, but shouldn't be here as it is redundant with Zerolog's level field
-		e = e.Int("v", level)
-	} else {
+	if DisableZerologLevelField {
 		if level > 1-int(zerolog.GlobalLevel()) {
 			return
 		}
-		// Use Logr's "v" notation only by default
+		// Use Logr's "v" level field
 		l := ls.l.With().Int("v", level).Logger()
-		// Don't use Zerolog's levels
+		// Use Zerolog without a level
 		e = l.Log()
+	} else {
+		e = ls.l.WithLevel(zerolog.Level(1 - level))
+		if !DisableVLevelField {
+			e.Int("v", level)
+		}
 	}
 	ls.msg(e, msg, keysAndValues)
 }
@@ -113,14 +121,13 @@ func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 // Error logs an error, with the given message and key/value pairs as context.
 func (ls *LogSink) Error(err error, msg string, keysAndValues ...interface{}) {
 	var e *zerolog.Event
-	if UseZerologLevelFieldName {
-		// If Zerolog's custom level field is set to something specific, use that instead
-		e = ls.l.Error().Err(err)
-	} else {
-		// // Use Logr's "v" notation only by default
+	if DisableZerologLevelField {
+		// Use Logr's "v" level field
 		l := ls.l.With().Err(err).Logger()
-		// // Don't use Zerolog's levels
+		// Use Zerolog without a level
 		e = l.Log()
+	} else {
+		e = ls.l.Error().Err(err)
 	}
 	ls.msg(e, msg, keysAndValues)
 }
