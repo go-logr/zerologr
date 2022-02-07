@@ -16,8 +16,7 @@
 // Levels in logr correspond to custom debug levels in Zerolog.  Any given level
 // in logr is represents by `zerologLevel = 1 - logrLevel`.
 // For example V(2) is equivalent to Zerolog's TraceLevel, while V(1) is
-// equivalent to Zerolog's DebugLevel.  Zerolog's usual "level" field is
-// disabled globally and replaced with "v", whose value is a number and is only
+// equivalent to Zerolog's DebugLevel.  Verbosity value is a number and is only
 // logged on Info(), not Error().
 package zerologr
 
@@ -29,19 +28,22 @@ import (
 )
 
 var (
-	// NameFieldName is the field key for logr.WithName
+	// NameFieldName is the field key for logr.WithName.
 	NameFieldName = "logger"
-	// NameSeparator separates names for logr.WithName
+	// NameSeparator separates names for logr.WithName.
 	NameSeparator = "/"
+	// VerbosityFieldName is the field key for logr.Info verbosity. If set to "",
+	// its value is not emitted.
+	VerbosityFieldName = "v"
 
-	// RenderArgsHook mutates the list of key-value pairs passed directly to Info and Error.
+	// RenderArgsHook mutates the list of key-value pairs passed directly to
+	// logr.Info and logr.Error.
 	RenderArgsHook = DefaultRender
-
-	// RenderValuesHook mutates the list of key-value pairs saved via WithValues.
+	// RenderValuesHook mutates the list of key-value pairs saved via logr.WithValues.
 	RenderValuesHook = DefaultRender
 )
 
-// Logger is type alias of logr.Logger
+// Logger is type alias of logr.Logger.
 type Logger = logr.Logger
 
 // LogSink implements logr.LogSink and logr.CallDepthLogSink.
@@ -90,7 +92,9 @@ func (ls *LogSink) Enabled(level int) bool {
 // Info logs a non-error message at specified V-level with the given key/value pairs as context.
 func (ls *LogSink) Info(level int, msg string, keysAndValues ...interface{}) {
 	e := ls.l.WithLevel(zerolog.Level(1 - level))
-	e.Int("v", level)
+	if VerbosityFieldName != "" {
+		e.Int(VerbosityFieldName, level)
+	}
 	ls.msg(e, msg, keysAndValues)
 }
 
